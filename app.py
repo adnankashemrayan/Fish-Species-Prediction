@@ -51,8 +51,11 @@ if uploaded_file:
 
     # Replace these with your actual fish class names
     class_names = [
-        "Salmon", "Tuna", "Catfish", "Tilapia", "Trout"
-    ]
+    "Baim","Bata","Batasio(tenra)","Chitul","Croaker(Poya)",
+    "Hilsha","Kajoli","Meni","Pabda","Poli",
+    "Puti","Rita","Rui","Rupchada","Silver Carp",
+    "Telapiya","carp","k","kaikka","koral","shrimp"
+]
     
     st.success(f"Predicted Species: {class_names[class_idx]}")
     st.write(f"Confidence: {prediction[0][class_idx]*100:.2f}%")
