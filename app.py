@@ -1,46 +1,58 @@
+# app.py
 import streamlit as st
+from tensorflow.keras.models import load_model
+from tensorflow.keras.preprocessing import image
 import numpy as np
-import tensorflow as tf
 from PIL import Image
 import requests
 from io import BytesIO
 
-MODEL_URL = "https://huggingface.co/spaces/riad2021/fish-classifier/resolve/main/fish_industry_model.keras"
-
-@st.cache_resource
-def load_model():
-    response = requests.get(MODEL_URL)
-    model = tf.keras.models.load_model(BytesIO(response.content), compile=False)
-    return model
-
-model = load_model()
-
-class_names = [
-    "Bangus","Big Head Carp","Black Spotted Barb","Catfish",
-    "Climbing Perch","Fourfinger Threadfin","Freshwater Eel",
-    "Glass Perchlet","Goby","Gold Fish","Gourami","Grass Carp",
-    "Green Spotted Puffer","Indian Carp","Indo-Pacific Tarpon",
-    "Jaguar Gapote","Janitor Fish","Knifefish",
-    "Long-Snouted Pipefish","Mosquito Fish","Mudfish","Mullet",
-    "Pangasius","Perch","Scat Fish","Silver Barb","Silver Carp",
-    "Silver Perch","Snakehead","Tenpounder","Tilapia"
-]
+# =========================
+# Page config
+# =========================
+st.set_page_config(page_title="Fish Species Classifier", page_icon="🐟", layout="wide")
 
 st.title("🐟 Fish Species Classifier")
+st.write("Upload an image of a fish and the AI model will predict its species.")
 
-uploaded_file = st.file_uploader("Upload Fish Image", type=["jpg","jpeg","png"])
+# =========================
+# Load model from HuggingFace link
+# =========================
+MODEL_URL = "https://huggingface.co/spaces/riad2021/fish-classifier/resolve/main/fish_industry_model.h5"
 
+@st.cache_resource
+def load_fish_model():
+    st.info("Loading AI model, please wait...")
+    # Download model from URL
+    response = requests.get(MODEL_URL)
+    with open("fish_industry_model.h5", "wb") as f:
+        f.write(response.content)
+    model = load_model("fish_industry_model.h5")
+    return model
+
+model = load_fish_model()
+
+# =========================
+# Upload image
+# =========================
+uploaded_file = st.file_uploader("Upload Fish Image", type=["jpg", "jpeg", "png"])
 if uploaded_file:
-    image = Image.open(uploaded_file).convert("RGB")
-    image = image.resize((224,224))   # VERY IMPORTANT
-    img_array = np.array(image) / 255.0
-    img_array = np.expand_dims(img_array, axis=0)
+    img = Image.open(uploaded_file).convert("RGB")
+    st.image(img, caption="Uploaded Image", use_column_width=True)
 
-    st.image(image, caption="Uploaded Image")
+    # Preprocess image for model
+    img_resized = img.resize((224, 224))
+    img_array = image.img_to_array(img_resized)
+    img_array = np.expand_dims(img_array, axis=0) / 255.0
 
+    # Prediction
     prediction = model.predict(img_array)
-    predicted_class = class_names[np.argmax(prediction)]
-    confidence = np.max(prediction) * 100
+    class_idx = np.argmax(prediction, axis=1)[0]
 
-    st.success(f"Prediction: {predicted_class}")
-    st.write(f"Confidence: {confidence:.2f}%")
+    # Replace these with your actual fish class names
+    class_names = [
+        "Salmon", "Tuna", "Catfish", "Tilapia", "Trout"
+    ]
+    
+    st.success(f"Predicted Species: {class_names[class_idx]}")
+    st.write(f"Confidence: {prediction[0][class_idx]*100:.2f}%")
