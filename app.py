@@ -1,35 +1,37 @@
 import streamlit as st
 import tensorflow as tf
-import numpy as np
 from PIL import Image
+import numpy as np
+import requests
+from io import BytesIO
 
-IMG_SIZE = 300
+st.title("Fish Industry Classifier 🐟")
+
+# Load the keras model from Hugging Face URL
+MODEL_URL = "https://huggingface.co/spaces/riad2021/fish-classifier/resolve/main/fish_industry_model.keras"
 
 @st.cache_resource
 def load_model():
-    return tf.keras.models.load_model("fish_industry_model.keras")
+    model_path = tf.keras.utils.get_file("fish_industry_model.keras", MODEL_URL)
+    model = tf.keras.models.load_model(model_path)
+    return model
 
 model = load_model()
 
-class_names = ['Baim', 'Bata', 'Batasio(tenra)', 'Chitul', 'Croaker(Poya)', 'Hilsha', 'Kajoli', 'Meni', 'Pabda', 'Poli', 'Puti', 'Rita', 'Rui', 'Rupchada', 'Silver Carp', 'Telapiya', 'carp', 'k', 'kaikka', 'koral', 'shrimp']  # ← তোমারটা বসাও
+# Upload image
+img_file = st.file_uploader("Upload a fish image", type=["jpg", "png", "jpeg"])
 
-st.title("🐟 Fish Species Classifier")
-st.write("Upload a fish image to predict the species.")
+if img_file:
+    img = Image.open(img_file).convert("RGB")
+    st.image(img, caption="Uploaded Image", use_column_width=True)
 
-uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "png", "jpeg"])
-
-if uploaded_file is not None:
-    image = Image.open(uploaded_file).convert("RGB")
-    image_resized = image.resize((IMG_SIZE, IMG_SIZE))
-    
-    img_array = np.array(image_resized)
+    # Preprocessing
+    img = img.resize((224, 224))  # adjust size based on your model
+    img_array = np.array(img) / 255.0
     img_array = np.expand_dims(img_array, axis=0)
-    img_array = tf.keras.applications.efficientnet_v2.preprocess_input(img_array)
 
+    # Prediction
     prediction = model.predict(img_array)
-    class_id = np.argmax(prediction)
-    confidence = np.max(prediction)
+    pred_class = np.argmax(prediction, axis=1)
 
-    st.image(image, caption="Uploaded Image", use_column_width=True)
-    st.success(f"Prediction: {class_names[class_id]}")
-    st.info(f"Confidence: {confidence:.2f}")
+    st.write("Prediction:", pred_class)
