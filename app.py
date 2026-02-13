@@ -40,10 +40,10 @@ if uploaded_file:
     img = Image.open(uploaded_file).convert("RGB")
     st.image(img, caption="Uploaded Image", use_column_width=True)
 
-    # Preprocess image for model
-    img_resized = img.resize((224, 224))
-    img_array = image.img_to_array(img_resized)
-    img_array = np.expand_dims(img_array, axis=0) / 255.0
+   # Preprocess image for model
+img_resized = img.resize((300, 300))  # <-- 224 -> 300
+img_array = image.img_to_array(img_resized)
+img_array = np.expand_dims(img_array, axis=0) / 255.0
 
     # Prediction
     prediction = model.predict(img_array)
