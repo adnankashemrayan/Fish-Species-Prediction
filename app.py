@@ -31,7 +31,7 @@ class_names = [
     "Baim","Bata","Batasio(tenra)","Chitul","Croaker(Poya)",
     "Hilsha","Kajoli","Meni","Pabda","Poli",
     "Puti","Rita","Rui","Rupchada","Silver Carp",
-    "Telapiya","carp","k","kaikka","koral","shrimp"
+    "Telapiya","carp","koi","kaikka","koral","shrimp"
 ]
 
 uploaded_file = st.file_uploader("Upload Fish Image (jpg/jpeg/png)", type=["jpg","jpeg","png"])
